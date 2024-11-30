@@ -7,10 +7,16 @@ import java.util.List;
 
 @Data
 public class MovieDetailsDTO {
+    @JsonProperty("Title")
     private String title;
+    @JsonProperty("Genre")
     private String genre;
+    @JsonProperty("Year")
     private String year;
+    @JsonProperty("Director")
     private String director;
+    @JsonProperty("Plot")
     private String plot;
+    @JsonProperty("Ratings")
     private List<RatingDTO> ratings;
 }

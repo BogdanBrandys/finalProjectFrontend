@@ -2,7 +2,6 @@ package com.kodilla.final_project_frontend.main;
 
 import com.kodilla.final_project_frontend.login.LoginView;
 import com.kodilla.final_project_frontend.register.RegistrationView;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
@@ -108,12 +107,5 @@ public class MainLayout extends AppLayout {
         centeredContent.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         centeredContent.add(view);
         return centeredContent;
-    }
-    public void switchToLoginTab() {
-        if (tabs != null) {
-            tabs.setSelectedIndex(0); // Przełączenie na zakładkę "Zaloguj się"
-        } else {
-            System.out.println("Tabs jest null!");
-        }
     }
 }

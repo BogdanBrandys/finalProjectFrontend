@@ -81,7 +81,6 @@ public class RegistrationView extends VerticalLayout {
             try {
                 register(firstname, lastname, username, email, password, roles);
                 Notification.show("Zarejestrowałeś się!");
-                mainLayout.switchToLoginTab();
             } catch (HttpClientErrorException.BadRequest ex) {
                 try {
                     // read JSON

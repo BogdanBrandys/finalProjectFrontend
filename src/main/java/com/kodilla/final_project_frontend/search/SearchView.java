@@ -1,13 +1,16 @@
 package com.kodilla.final_project_frontend.search;
 
+import com.kodilla.final_project_frontend.collection.CollectionView;
 import com.kodilla.final_project_frontend.main.MainLayout;
 import com.kodilla.final_project_frontend.shared.MovieBasicDTO;
 import com.kodilla.final_project_frontend.shared.MovieDTO;
+import com.kodilla.final_project_frontend.user.UserView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -27,6 +30,10 @@ public class SearchView extends VerticalLayout {
     private final Grid<MovieBasicDTO> movieGrid = new Grid<>();
 
     public SearchView() {
+        // Nawigacja po zalogowaniu - pasek nawigacyjny
+        HorizontalLayout navigationBar = createNavigationBar();
+        add(navigationBar);  // Dodaj pasek nawigacyjny na górze
+
         // Nagłówek
         H1 title = new H1("Wyszukaj film");
         title.getStyle().set("text-align", "center");
@@ -44,7 +51,6 @@ public class SearchView extends VerticalLayout {
             }
         });
 
-        // Grid wyników
         movieGrid.addColumn(MovieBasicDTO::getId).setHeader("Numer ID").setAutoWidth(true);
         movieGrid.addColumn(MovieBasicDTO::getTitle).setHeader("Tytuł").setAutoWidth(true);
         movieGrid.addColumn(MovieBasicDTO::getRelease_date).setHeader("Data wydania").setAutoWidth(true);
@@ -54,10 +60,9 @@ public class SearchView extends VerticalLayout {
                 addMovieToDatabase(movie);
             });
 
-            // Jeśli film został już dodany, zablokuj przycisk
             updateAddButtonState(addButton, movie);
 
-            return addButton;  // Zwrócenie przycisku do kolumny w tabeli
+            return addButton;
         }).setAutoWidth(true);
 
         movieGrid.setSizeFull();
@@ -65,9 +70,29 @@ public class SearchView extends VerticalLayout {
 
         add(title, titleField, searchButton, movieGrid);
         setAlignItems(Alignment.CENTER);
-
         setSpacing(true);
         setSizeFull();
+    }
+
+    private HorizontalLayout createNavigationBar() {
+        // Tworzymy pasek nawigacyjny z przyciskami
+        Button myCollectionButton = new Button("Moja kolekcja", event -> navigateToCollection());
+        Button editProfileButton = new Button("Zmień dane", event -> navigateToEditProfile());
+
+        HorizontalLayout navBar = new HorizontalLayout(myCollectionButton, editProfileButton);
+        navBar.setSpacing(true);
+        navBar.setJustifyContentMode(JustifyContentMode.START);
+        return navBar;
+    }
+
+    private void navigateToCollection() {
+        // Przechodzenie do widoku kolekcji
+        UI.getCurrent().navigate(CollectionView.class);
+    }
+
+    private void navigateToEditProfile() {
+        // Przechodzenie do widoku zmiany danych użytkownika
+        UI.getCurrent().navigate(UserView.class);
     }
 
     private void updateAddButtonState(Button addButton, MovieBasicDTO movie) {
@@ -75,16 +100,16 @@ public class SearchView extends VerticalLayout {
             addButton.setText("Film już dodany");
             addButton.setEnabled(false);
             addButton.getElement().getStyle()
-                    .set("background-color", "gray")  // Ustawienie szarego koloru
-                    .set("color", "white");  // Kolor tekstu
+                    .set("background-color", "gray")
+                    .set("color", "white");
         } else {
             addButton.setText("Dodaj do bazy");
             addButton.setEnabled(true);
             addButton.getElement().getStyle()
-                    .set("background-color", "#ADD8E6")  // Zielony kolor w hex
-                    .set("color", "white")  // Kolor tekstu
-                    .set("border", "none")  // Usunięcie obramowania
-                    .set("border-radius", "5px");  // Zaokrąglone rogi
+                    .set("background-color", "#0074E8")
+                    .set("color", "white")
+                    .set("border", "none")
+                    .set("border-radius", "5px");
         }
     }
 
@@ -141,7 +166,6 @@ public class SearchView extends VerticalLayout {
             return;
         }
 
-        // Przygotowanie danych do wysłania
         MovieBasicDTO movieBasicDTO = new MovieBasicDTO();
         movieBasicDTO.setId(Long.valueOf(movie.getId()));
         movieBasicDTO.setTitle(movie.getTitle());
@@ -160,13 +184,10 @@ public class SearchView extends VerticalLayout {
             if (response.getStatusCode() == HttpStatus.CREATED) {
                 Notification.show("Film dodany do bazy!", 3000, Notification.Position.MIDDLE);
 
-                // Zaktualizowanie stanu filmu
                 movie.setAddedToFavorites(true);
 
-                // Odświeżenie widoku w Grid, by zmienić stan przycisku
                 movieGrid.getDataProvider().refreshItem(movie);
 
-                // Zaktualizowanie stanu przycisku
                 movieGrid.getDataProvider().refreshAll();  // Refresh all items to reflect state changes
             } else {
                 Notification.show("Nie udało się dodać filmu.", 3000, Notification.Position.MIDDLE);
