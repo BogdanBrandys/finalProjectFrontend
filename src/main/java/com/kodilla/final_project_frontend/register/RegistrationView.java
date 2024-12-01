@@ -2,9 +2,12 @@ package com.kodilla.final_project_frontend.register;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kodilla.final_project_frontend.login.LoginView;
 import com.kodilla.final_project_frontend.main.MainLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -28,6 +31,8 @@ public class RegistrationView extends VerticalLayout {
     public RegistrationView(MainLayout mainLayout) {
         this.mainLayout = mainLayout;
         this.restTemplate = new RestTemplate();
+
+        add(new H2("Zarejestruj się"));
 
         // Registration fields
         TextField firstnameField = new TextField("Imię");
@@ -81,6 +86,7 @@ public class RegistrationView extends VerticalLayout {
             try {
                 register(firstname, lastname, username, email, password, roles);
                 Notification.show("Zarejestrowałeś się!");
+                UI.getCurrent().navigate(LoginView.class);
             } catch (HttpClientErrorException.BadRequest ex) {
                 try {
                     // read JSON

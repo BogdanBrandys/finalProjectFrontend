@@ -2,8 +2,10 @@ package com.kodilla.final_project_frontend.search;
 
 import com.kodilla.final_project_frontend.collection.CollectionView;
 import com.kodilla.final_project_frontend.main.MainLayout;
+import com.kodilla.final_project_frontend.physical.PhysicalView;
 import com.kodilla.final_project_frontend.shared.MovieBasicDTO;
 import com.kodilla.final_project_frontend.shared.MovieDTO;
+import com.kodilla.final_project_frontend.stats.StatsView;
 import com.kodilla.final_project_frontend.user.UserView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -30,18 +32,18 @@ public class SearchView extends VerticalLayout {
     private final Grid<MovieBasicDTO> movieGrid = new Grid<>();
 
     public SearchView() {
-        // Nawigacja po zalogowaniu - pasek nawigacyjny
+        // Nav bar after login
         HorizontalLayout navigationBar = createNavigationBar();
-        add(navigationBar);  // Dodaj pasek nawigacyjny na górze
+        add(navigationBar);
 
-        // Nagłówek
+        // Header
         H1 title = new H1("Wyszukaj film");
         title.getStyle().set("text-align", "center");
 
-        // Pole wyszukiwania
+        // Search field
         TextField titleField = new TextField("Tytuł filmu");
 
-        // Przycisk wyszukiwania
+        // Search button
         Button searchButton = new Button("Szukaj", event -> {
             String movieTitle = titleField.getValue();
             if (movieTitle.isEmpty()) {
@@ -75,24 +77,31 @@ public class SearchView extends VerticalLayout {
     }
 
     private HorizontalLayout createNavigationBar() {
-        // Tworzymy pasek nawigacyjny z przyciskami
         Button myCollectionButton = new Button("Moja kolekcja", event -> navigateToCollection());
-        Button editProfileButton = new Button("Zmień dane", event -> navigateToEditProfile());
+        Button editProfileButton = new Button("Dane użytkownika", event -> navigateToEditProfile());
+        Button physicalCollection = new Button("Moja fizyczna kolekcja", event -> navigateToPhysicalCollection());
+        Button statsButton = new Button("Statystyka kolekcji", event -> navigateToStats());
 
-        HorizontalLayout navBar = new HorizontalLayout(myCollectionButton, editProfileButton);
+        HorizontalLayout navBar = new HorizontalLayout(myCollectionButton, physicalCollection, statsButton, editProfileButton);
         navBar.setSpacing(true);
         navBar.setJustifyContentMode(JustifyContentMode.START);
         return navBar;
     }
 
     private void navigateToCollection() {
-        // Przechodzenie do widoku kolekcji
         UI.getCurrent().navigate(CollectionView.class);
     }
 
     private void navigateToEditProfile() {
-        // Przechodzenie do widoku zmiany danych użytkownika
         UI.getCurrent().navigate(UserView.class);
+    }
+
+    private void navigateToPhysicalCollection() {
+        UI.getCurrent().navigate(PhysicalView.class);
+    }
+
+    private void navigateToStats() {
+        UI.getCurrent().navigate(StatsView.class);
     }
 
     private void updateAddButtonState(Button addButton, MovieBasicDTO movie) {
@@ -188,7 +197,7 @@ public class SearchView extends VerticalLayout {
 
                 movieGrid.getDataProvider().refreshItem(movie);
 
-                movieGrid.getDataProvider().refreshAll();  // Refresh all items to reflect state changes
+                movieGrid.getDataProvider().refreshAll();
             } else {
                 Notification.show("Nie udało się dodać filmu.", 3000, Notification.Position.MIDDLE);
             }

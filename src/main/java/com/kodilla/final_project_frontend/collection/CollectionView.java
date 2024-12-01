@@ -2,12 +2,13 @@ package com.kodilla.final_project_frontend.collection;
 
 import com.kodilla.final_project_frontend.main.MainLayout;
 import com.kodilla.final_project_frontend.shared.*;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -26,122 +27,37 @@ import java.util.stream.Collectors;
 @Route(value = "collection", layout = MainLayout.class)
 public class CollectionView extends VerticalLayout {
 
-    private final Grid<MovieDTO> movieGrid = new Grid<>();
+    private final VerticalLayout contentLayout = new VerticalLayout();
+    private final Button backToSearchButton;
 
     public CollectionView() {
-        // Nagłówek
+        // Header
         H1 title = new H1("Przeglądaj swoją kolekcję");
         title.getStyle().set("text-align", "center");
 
-        // Przycisk powrotu do wyszukiwania filmów
-        Button backToSearchButton = new Button("Wróć do wyszukiwania filmów", event -> {
+        // Return button
+        backToSearchButton = new Button("Wróć do wyszukiwania filmów", event -> {
             UI.getCurrent().navigate("search");
         });
+        backToSearchButton.getStyle().set("margin-bottom", "20px");
 
-        // Konfiguracja kolumn
-        movieGrid.addColumn(MovieDTO::getMovie_id).setHeader("ID Filmu").setAutoWidth(true);
-        movieGrid.addColumn(MovieDTO::getTmdbId).setHeader("TMDB ID").setAutoWidth(true);
-        movieGrid.getElement().getStyle().set("font-size", "12px");
+        // Header layout
+        VerticalLayout headerLayout = new VerticalLayout();
+        headerLayout.add(title, backToSearchButton);
+        headerLayout.setAlignItems(Alignment.CENTER);
 
-        movieGrid.addColumn(movie -> {
-            String movieTitle = movie.getDetails().getTitle();
-            return (movieTitle == null || movieTitle.isEmpty()) ? "Brak tytułu" : movieTitle;
-        }).setHeader("Tytuł").setAutoWidth(true);
+        // Movies layout
+        contentLayout.setWidthFull();
+        contentLayout.setSpacing(true);
 
-        movieGrid.addColumn(movie -> {
-            String genre = movie.getDetails().getGenre();
-            return (genre == null || genre.isEmpty()) ? "Brak gatunku" : genre;
-        }).setHeader("Gatunek").setAutoWidth(true);
+        // To main view
+        add(headerLayout, contentLayout);
 
-        movieGrid.addColumn(movie -> {
-            String year = movie.getDetails().getYear();
-            return (year == null || year.isEmpty()) ? "Brak roku" : year;
-        }).setHeader("Rok").setAutoWidth(true);
-
-        movieGrid.addColumn(movie -> {
-            String director = movie.getDetails().getDirector();
-            return (director == null || director.isEmpty()) ? "Brak reżysera" : director;
-        }).setHeader("Reżyser").setAutoWidth(true);
-
-        movieGrid.addColumn(movie -> {
-            String plot = movie.getDetails().getPlot();
-            return (plot == null || plot.isEmpty()) ? "Brak fabuły" : plot;
-        }).setHeader("Fabuła").setAutoWidth(true);
-
-        // Kolumna ocen
-        movieGrid.addColumn(movie -> {
-            List<RatingDTO> ratings = movie.getDetails().getRatings();
-            return (ratings == null || ratings.isEmpty())
-                    ? "Brak ocen"
-                    : ratings.stream()
-                    .map(rating -> rating.getSource() + ": " + rating.getValue())
-                    .collect(Collectors.joining(", "));
-        }).setHeader("Oceny").setAutoWidth(true);
-
-        // Kolumna subskrypcji
-        movieGrid.addColumn(movie -> {
-            List<MovieProviderDTO> subscriptions = movie.getProviders().getSubscription();
-            return (subscriptions == null || subscriptions.isEmpty())
-                    ? "Brak dostępnych subskrypcji"
-                    : subscriptions.stream()
-                    .map(MovieProviderDTO::getProvider_name)
-                    .collect(Collectors.joining(", "));
-        }).setHeader("Subskrypcja").setAutoWidth(true);
-
-        // Kolumna wypożyczeń
-        movieGrid.addColumn(movie -> {
-            List<MovieProviderDTO> rentals = movie.getProviders().getRental();
-            return (rentals == null || rentals.isEmpty())
-                    ? "Brak możliwości wypożyczenia"
-                    : rentals.stream()
-                    .map(MovieProviderDTO::getProvider_name)
-                    .collect(Collectors.joining(", "));
-        }).setHeader("Wypożyczenie").setAutoWidth(true);
-
-        // Kolumna zakupów
-        movieGrid.addColumn(movie -> {
-            List<MovieProviderDTO> purchases = movie.getProviders().getPurchase();
-            return (purchases == null || purchases.isEmpty())
-                    ? "Brak możliwości zakupu"
-                    : purchases.stream()
-                    .map(MovieProviderDTO::getProvider_name)
-                    .collect(Collectors.joining(", "));
-        }).setHeader("Zakup").setAutoWidth(true);
-
-        // Kolumna wersji fizycznych
-        movieGrid.addColumn(movie -> {
-            PhysicalVersionDTO physicalVersion = movie.getPhysicalVersion();
-            return (physicalVersion == null)
-                    ? "Brak wersji fizycznej"
-                    : String.format("Opis: %s, Rok: %d, Steelbook: %s, Szczegóły: %s",
-                    physicalVersion.getDescription(),
-                    physicalVersion.getReleaseYear(),
-                    physicalVersion.getSteelbook() ? "Tak" : "Nie",
-                    physicalVersion.getDetails());
-        }).setHeader("Wersja Fizyczna").setAutoWidth(true);
-
-        movieGrid.addComponentColumn(movie -> {
-            Button removeButton = new Button("Usuń film", event -> removeMovieFromFavorites(movie.getMovie_id()));
-            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
-            Button addPhysicalVersionButton = new Button("Aktualizuj wersję fizyczną", event -> addPhysicalVersion(movie));
-            addPhysicalVersionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-            HorizontalLayout buttonLayout = new HorizontalLayout(removeButton, addPhysicalVersionButton);
-            buttonLayout.setSpacing(true);
-            return buttonLayout;
-        }).setHeader("Operacje").setAutoWidth(true);
-
-        movieGrid.setSizeFull();
-
-        // Ładowanie filmów
-        loadMovies();
-
-        // Dodanie komponentów do widoku
-        add(title, backToSearchButton, movieGrid);
         setAlignItems(Alignment.CENTER);
-        setSpacing(true);
         setSizeFull();
+
+        // loading movies
+        loadMovies();
     }
 
     private void loadMovies() {
@@ -173,12 +89,120 @@ public class CollectionView extends VerticalLayout {
                     url, HttpMethod.GET, request, MovieDTO[].class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                movieGrid.setItems(response.getBody());
+                displayMovies(response.getBody());
             } else {
                 Notification.show("Brak filmów w Twojej kolekcji.", 3000, Notification.Position.MIDDLE);
             }
         } catch (Exception e) {
             Notification.show("Błąd podczas ładowania kolekcji filmów: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+        }
+    }
+
+    private void displayMovies(MovieDTO[] movies) {
+        removeAll();
+
+        H1 title = new H1("Przeglądaj swoją kolekcję");
+        title.getStyle().set("text-align", "center");
+        add(title);
+
+        // // Return button again
+        add(backToSearchButton);
+
+        for (MovieDTO movie : movies) {
+            // Div for every movie
+            Div movieDiv = new Div();
+            movieDiv.getStyle()
+                    .set("border", "1px solid #ccc")
+                    .set("padding", "5px")
+                    .set("margin-bottom", "10px")
+                    .set("width", "100%");
+
+            VerticalLayout movieLayout = new VerticalLayout();
+            movieLayout.setSpacing(false);
+            movieLayout.getStyle().set("gap", "3px");
+
+            //Basic data
+            Div titleDiv = new Div(new Text("Tytuł: " + (movie.getDetails().getTitle() != null ? movie.getDetails().getTitle() : "Brak tytułu")));
+            titleDiv.getStyle().set("margin-bottom", "2px");
+
+            Div genreDiv = new Div(new Text("Gatunek: " + (movie.getDetails().getGenre() != null ? movie.getDetails().getGenre() : "Brak gatunku")));
+            genreDiv.getStyle().set("margin-bottom", "2px");
+
+            Div yearDiv = new Div(new Text("Rok: " + (movie.getDetails().getYear() != null ? movie.getDetails().getYear() : "Brak roku")));
+            yearDiv.getStyle().set("margin-bottom", "2px");
+
+            Div directorDiv = new Div(new Text("Reżyser: " + (movie.getDetails().getDirector() != null ? movie.getDetails().getDirector() : "Brak reżysera")));
+            directorDiv.getStyle().set("margin-bottom", "2px");
+
+            Div plotDiv = new Div(new Text("Fabuła: " + (movie.getDetails().getPlot() != null ? movie.getDetails().getPlot() : "Brak fabuły")));
+            plotDiv.getStyle().set("margin-bottom", "2px");
+
+            // Add elements to VerticalLayout
+            movieLayout.add(titleDiv, genreDiv, yearDiv, directorDiv, plotDiv);
+
+            // Ratings
+            List<RatingDTO> ratings = movie.getDetails().getRatings();
+            String ratingsText = (ratings != null && !ratings.isEmpty())
+                    ? ratings.stream().map(rating -> rating.getSource() + ": " + rating.getValue()).collect(Collectors.joining(", "))
+                    : "Brak ocen";
+            Div ratingsDiv = new Div(new Text("Oceny: " + ratingsText));
+            ratingsDiv.getStyle().set("margin-bottom", "2px");
+            movieLayout.add(ratingsDiv);
+
+            // Providers
+            List<MovieProviderDTO> subscriptions = movie.getProviders().getSubscription();
+            String subscriptionsText = (subscriptions != null && !subscriptions.isEmpty())
+                    ? subscriptions.stream().map(MovieProviderDTO::getProvider_name).collect(Collectors.joining(", "))
+                    : "Brak dostępnych subskrypcji";
+            Div subscriptionsDiv = new Div(new Text("Subskrypcje: " + subscriptionsText));
+            subscriptionsDiv.getStyle().set("margin-bottom", "2px");
+            movieLayout.add(subscriptionsDiv);
+
+            List<MovieProviderDTO> rentals = movie.getProviders().getRental();
+            String rentalsText = (rentals != null && !rentals.isEmpty())
+                    ? rentals.stream().map(MovieProviderDTO::getProvider_name).collect(Collectors.joining(", "))
+                    : "Brak możliwości wypożyczenia";
+            Div rentalsDiv = new Div(new Text("Wypożyczenie: " + rentalsText));
+            rentalsDiv.getStyle().set("margin-bottom", "2px");
+            movieLayout.add(rentalsDiv);
+
+            List<MovieProviderDTO> purchases = movie.getProviders().getPurchase();
+            String purchasesText = (purchases != null && !purchases.isEmpty())
+                    ? purchases.stream().map(MovieProviderDTO::getProvider_name).collect(Collectors.joining(", "))
+                    : "Brak możliwości zakupu";
+            Div purchasesDiv = new Div(new Text("Zakup: " + purchasesText));
+            purchasesDiv.getStyle().set("margin-bottom", "2px");
+            movieLayout.add(purchasesDiv);
+
+            // Physical version
+            PhysicalVersionDTO physicalVersion = movie.getPhysicalVersion();
+            String physicalVersionText = (physicalVersion != null)
+                    ? String.format("Opis: %s, Rok: %d, Steelbook: %s, Szczegóły: %s",
+                    physicalVersion.getDescription(),
+                    physicalVersion.getReleaseYear(),
+                    physicalVersion.getSteelbook() ? "Tak" : "Nie",
+                    physicalVersion.getDetails())
+                    : "Brak wersji fizycznej";
+            Div physicalVersionDiv = new Div(new Text("Wersja fizyczna: " + physicalVersionText));
+            physicalVersionDiv.getStyle().set("margin-bottom", "2px");
+            movieLayout.add(physicalVersionDiv);
+
+            // Button to delete movie from favourite
+            Button removeButton = new Button("Usuń film", event -> removeMovieFromFavorites(movie.getMovie_id()));
+            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+            // Button to add/change physical version
+            Button addPhysicalVersionButton = new Button("Aktualizuj wersję fizyczną", event -> addPhysicalVersion(movie));
+            addPhysicalVersionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            // Add buttons to layout
+            HorizontalLayout buttonLayout = new HorizontalLayout(removeButton, addPhysicalVersionButton);
+            buttonLayout.setSpacing(true);
+            movieLayout.add(buttonLayout);
+
+            // Add movie to main view
+            movieDiv.add(movieLayout);
+            add(movieDiv);
         }
     }
     private void removeMovieFromFavorites(Long movieId) {
@@ -198,25 +222,21 @@ public class CollectionView extends VerticalLayout {
         }
 
         try {
-            // URL do Twojego endpointu w backendzie
             String url = "http://localhost:8080/v1/movies/" + movieId;
 
-            // Przygotowanie obiektu RestTemplate i nagłówków z tokenem
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
-            headers.setContentType(MediaType.APPLICATION_JSON); // Dodaj Content-Type jeśli potrzebne
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // Tworzymy żądanie z odpowiednimi nagłówkami
             HttpEntity<?> request = new HttpEntity<>(headers);
 
-            // Wywołanie metody DELETE na backendzie
             ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
 
-            // Sprawdzamy odpowiedź
+            // checking response
             if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
                 Notification.show("Film został usunięty z ulubionych.", 3000, Notification.Position.MIDDLE);
-                loadMovies();  // Odświeżenie listy filmów po usunięciu
+                loadMovies();
             } else if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
                 Notification.show("Nie znaleziono filmu do usunięcia.", 3000, Notification.Position.MIDDLE);
             } else {
@@ -229,42 +249,41 @@ public class CollectionView extends VerticalLayout {
     private void addPhysicalVersion(MovieDTO movie) {
         Dialog physicalVersionDialog = new Dialog();
 
-        // Formularz dodawania wersji fizycznej
+        // Form
         TextField descriptionField = new TextField("Opis");
-        descriptionField.setRequired(false);  // Ustawienie jako nieobowiązkowe
+        descriptionField.setRequired(false);
 
         TextField releaseYearField = new TextField("Rok wydania");
-        releaseYearField.setRequired(false);  // Ustawienie jako nieobowiązkowe
+        releaseYearField.setRequired(false);
 
         Checkbox steelbookCheckbox = new Checkbox("Steelbook");
-        steelbookCheckbox.setValue(false);  // Ustawienie checkboxa na niezaznaczone (domyślnie)
+        steelbookCheckbox.setValue(false);
 
         TextArea detailsField = new TextArea("Szczegóły");
-        detailsField.setRequired(false);  // Ustawienie jako nieobowiązkowe
+        detailsField.setRequired(false);
 
-        // Pole z tytułem filmu, które jest automatycznie ustawiane na tytuł filmu z obiektu MovieDTO
+        // Movie title is adding automatically
         TextField movieTitleField = new TextField("Tytuł filmu");
-        movieTitleField.setValue(movie.getDetails().getTitle());  // Automatycznie ustaw tytuł na tytuł filmu
-        movieTitleField.setEnabled(false); // Ustawienie pola jako tylko do odczytu
+        movieTitleField.setValue(movie.getDetails().getTitle());
+        movieTitleField.setEnabled(false); //only read
 
         Button saveButton = new Button("Zapisz", event -> {
             try {
-                // Parsowanie roku wydania jako Integer lub ustawienie domyślnej wartości 0
+                // default values
                 int releaseYear = 0;
                 if (!releaseYearField.getValue().isEmpty()) {
                     releaseYear = Integer.parseInt(releaseYearField.getValue());
                 }
 
-                // Tworzymy obiekt PhysicalVersionDTO, ustawiając wartości na null, jeśli pole jest puste
                 PhysicalVersionDTO physicalVersion = new PhysicalVersionDTO(
                         descriptionField.getValue().isEmpty() ? null : descriptionField.getValue(),
-                        releaseYear,  // Ustawienie na 0, jeśli pole jest puste
-                        steelbookCheckbox.getValue() ? true : null,  // Jeśli nie zaznaczone, ustawiamy null
+                        releaseYear,
+                        steelbookCheckbox.getValue() ? true : null,
                         detailsField.getValue().isEmpty() ? null : detailsField.getValue(),
-                        movieTitleField.getValue().isEmpty() ? null : movieTitleField.getValue()  // Jeśli pole puste, ustawiamy null
+                        movieTitleField.getValue().isEmpty() ? null : movieTitleField.getValue()
                 );
 
-                // Wyślij tylko wtedy, gdy chociaż jedno pole zostało wypełnione
+                // Send if one field is entered
                 if (physicalVersion.getDescription() != null || physicalVersion.getReleaseYear() != 0 || physicalVersion.getDetails() != null || physicalVersion.getSteelbook() != null) {
                     savePhysicalVersion(movie.getMovie_id(), physicalVersion);
                     physicalVersionDialog.close();
@@ -291,19 +310,17 @@ public class CollectionView extends VerticalLayout {
             String url = "http://localhost:8080/v1/movies/" + movieId + "/physical";
             RestTemplate restTemplate = new RestTemplate();
 
-            // Ustawienie nagłówka na 'application/json'
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
-            headers.setContentType(MediaType.APPLICATION_JSON); // Ważna zmiana
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<PhysicalVersionDTO> request = new HttpEntity<>(physicalVersion, headers);
 
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
 
-            // Sprawdzamy odpowiedź
             if (response.getStatusCode() == HttpStatus.OK) {
                 Notification.show("Wersja fizyczna została dodana.", 3000, Notification.Position.MIDDLE);
-                loadMovies();  // Przeładuj listę filmów
+                loadMovies();
             } else if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
                 Notification.show("Nie znaleziono filmu do dodania wersji fizycznej.", 3000, Notification.Position.MIDDLE);
             } else {

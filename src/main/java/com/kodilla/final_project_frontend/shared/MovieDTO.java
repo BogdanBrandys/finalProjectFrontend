@@ -9,4 +9,5 @@ public class MovieDTO {
     private MovieDetailsDTO details;
     private GroupedProvidersDTO providers;
     private PhysicalVersionDTO physicalVersion;
+    private boolean detailsExpanded;
 }

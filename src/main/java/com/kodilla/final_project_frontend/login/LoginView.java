@@ -6,6 +6,8 @@ import com.kodilla.final_project_frontend.main.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -27,7 +29,9 @@ public class LoginView extends VerticalLayout {
     public LoginView() {
         this.restTemplate = new RestTemplate();
 
-        // Username Field
+        add(new H2("Zaloguj się do swojego konta"));
+
+        // username Field
         TextField usernameField = new TextField("Login");
         usernameField.setRequired(true);
 
@@ -35,7 +39,7 @@ public class LoginView extends VerticalLayout {
         PasswordField passwordField = new PasswordField("Hasło");
         passwordField.setRequired(true);
 
-        // Przycisk logowania
+        // login button
         Button loginButton = new Button("Zaloguj się", event -> {
             String username = usernameField.getValue();
             String password = passwordField.getValue();
@@ -46,7 +50,7 @@ public class LoginView extends VerticalLayout {
                 VaadinSession.getCurrent().setAttribute("token", token);
                 UI.getCurrent().navigate("search");
             } catch (Exception e) {
-                Notification.show("Login failed: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                Notification.show("Wprowadź poprawne dane", 5000, Notification.Position.MIDDLE);
             }
         });
 
